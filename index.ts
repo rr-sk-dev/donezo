@@ -16,6 +16,8 @@ const server = Bun.serve({
   routes: {
     '/': index,
     '/health': new Response('ok'),
+    '/icon-192.png': () => new Response(Bun.file('./src/icon-192.png')),
+    '/icon-512.png': () => new Response(Bun.file('./src/icon-512.png')),
   },
   fetch() {
     return new Response('Not found', { status: 404 });

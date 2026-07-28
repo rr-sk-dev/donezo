@@ -32,6 +32,7 @@ PORT=8080 bun run dev
 - Reorder open todos by dragging the handle, or by focusing it and pressing <kbd>↑</kbd>/<kbd>↓</kbd>
 - Completed todos drop to the bottom and are not reorderable
 - Todos persist across reloads
+- Installable — add it to your phone's home screen and it opens fullscreen, like an app
 - Responsive down to phone widths, with keyboard and screen-reader support
 
 ## Project layout
@@ -48,6 +49,9 @@ Bun bundles and transpiles `app.ts` and `styles.css` automatically via the HTML 
 ## Other commands
 
 ```bash
+bun run build       # static bundle into dist/
 bun test            # run tests
 bunx tsc --noEmit   # typecheck
 ```
+
+`dist/` is a plain static folder — no server required to host it.

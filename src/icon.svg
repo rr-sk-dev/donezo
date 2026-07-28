@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" fill="#0b1120" />
+  <!-- The same checkmark the todo checkbox draws, scaled from its 24px viewBox
+       and kept inside the middle 80% so maskable crops never clip it -->
+  <g
+    transform="translate(64 72) scale(16)"
+    fill="none"
+    stroke="#ffffff"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <path d="m20 6-11 11-5-5" />
+  </g>
+</svg>

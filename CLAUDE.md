@@ -8,10 +8,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 bun install          # install dependencies
 bun run dev          # dev server with HMR + browser console piped to the terminal
 bun run start        # production mode (NODE_ENV=production, disables HMR)
+bun run build        # static bundle into dist/ — this is what gets deployed
 bun test             # run tests
 bun test <pattern>   # run tests matching a file/name pattern
 bun test -t "name"   # run a single test by name
-bunx tsc --noEmit    # typecheck (tsconfig is noEmit; there is no build step)
+bunx tsc --noEmit    # typecheck (tsconfig is noEmit; bun build does the bundling)
 ```
 
 `PORT` overrides the default port 3000. The server binds `0.0.0.0` and prints a LAN URL in dev so the app can be opened from a phone on the same network.
@@ -22,7 +23,8 @@ There is no linter or formatter configured.
 
 Donezo is a single-page todo app with **no backend state** — `index.ts` is only a static host, and all data lives in the browser's `localStorage` under the key `todos:v1`.
 
-- `index.ts` — `Bun.serve()` with two routes: `/` (the HTML import) and `/health`. The `import index from './src/index.html'` line is what makes Bun bundle and transpile `app.ts` and `styles.css`; do not add a separate bundler or build step. The files under `src/` are bundler inputs — they are never served at their source paths.
+- `index.ts` — the **dev** server. `Bun.serve()` with `/` (the HTML import), `/health`, and the two manifest icons. The `import index from './src/index.html'` line is what makes Bun bundle and transpile `app.ts` and `styles.css`; do not add a third-party bundler. The files under `src/` are bundler inputs — they are never served at their source paths. Deployment does not run this server; `bun run build` emits a static `dist/` instead.
+- `src/manifest.webmanifest` + icons — make the app installable to a phone home screen, which on iOS also exempts it from the ~7-day eviction that would otherwise wipe `localStorage`. **`src/icon-192.png` and `src/icon-512.png` are deliberately served at fixed, unhashed paths** — every asset linked from the HTML gets content-hashed by the bundler, but the manifest is JSON that the bundler copies verbatim, so its internal `/icon-*.png` references would break against hashed names. They are wired up twice on purpose: a route in `index.ts` for dev, and a `cp` in the `build` script for production. Adding an icon to the manifest means updating both.
 - `src/index.html` — markup plus a `<template id="todo-template">` that defines a todo row. Row structure is authored here, not generated in JS.
 - `src/app.ts` — the entire app. Vanilla TS, no framework, no dependencies.
 - `src/styles.css` — CSS custom properties in `:root` are mobile-first defaults, overridden at `min-width: 480px` and `768px`. Change spacing/sizing by editing those tokens rather than individual rules. Class names are BEM (`todo__checkbox`, `card__title`).
