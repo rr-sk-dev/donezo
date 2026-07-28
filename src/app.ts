@@ -126,6 +126,43 @@ function syncEmptyState(): void {
   emptyState.hidden = hasTodos;
 }
 
+const flips = new WeakMap<Element, Animation>();
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+function slide(row: HTMLLIElement, from: number): void {
+  if (!from || reducedMotion.matches) {
+    return;
+  }
+
+  flips.set(
+    row,
+    row.animate([{ transform: `translateY(${from}px)` }, { transform: 'translateY(0)' }], {
+      duration: 160,
+      easing: 'cubic-bezier(0.2, 0, 0, 1)',
+    }),
+  );
+}
+
+function withFlip(move: () => void, skip?: HTMLLIElement): void {
+  const rows = activeRows();
+  const first = new Map<HTMLLIElement, number>();
+
+  for (const row of rows) {
+    first.set(row, row.getBoundingClientRect().top);
+  }
+
+  move();
+
+  for (const row of rows) {
+    if (row === skip) {
+      continue;
+    }
+
+    flips.get(row)?.cancel();
+    slide(row, first.get(row)! - row.getBoundingClientRect().top);
+  }
+}
+
 function renderAll(): void {
   const fragment = document.createDocumentFragment();
 
@@ -215,7 +252,7 @@ function moveRow(row: HTMLLIElement, delta: number): void {
     return;
   }
 
-  list.insertBefore(row, delta < 0 ? rows[to]! : rows[to]!.nextElementSibling);
+  withFlip(() => list.insertBefore(row, delta < 0 ? rows[to]! : rows[to]!.nextElementSibling));
   commitOrder();
 }
 
@@ -343,6 +380,7 @@ list.addEventListener('focusout', (event) => {
 });
 
 let dragRow: HTMLLIElement | null = null;
+let dragOrigin = 0;
 
 function handleOf(target: EventTarget | null): HTMLButtonElement | null {
   return target instanceof Element ? target.closest<HTMLButtonElement>('[data-drag]') : null;
@@ -357,7 +395,9 @@ list.addEventListener('pointerdown', (event) => {
   }
 
   event.preventDefault();
+  flips.get(row)?.cancel();
   dragRow = row;
+  dragOrigin = event.clientY;
   row.classList.add('todo--dragging');
   list.setPointerCapture(event.pointerId);
 });
@@ -367,11 +407,18 @@ list.addEventListener('pointermove', (event) => {
     return;
   }
 
-  const before = dropTarget(event.clientY, dragRow);
+  const row = dragRow;
+  const before = dropTarget(event.clientY, row);
 
-  if (before !== dragRow.nextElementSibling) {
-    list.insertBefore(dragRow, before);
+  if (before !== row.nextElementSibling) {
+    const was = row.getBoundingClientRect().top;
+
+    withFlip(() => list.insertBefore(row, before), row);
+
+    dragOrigin -= was - row.getBoundingClientRect().top;
   }
+
+  row.style.transform = `translateY(${event.clientY - dragOrigin}px)`;
 });
 
 function endDrag(): void {
@@ -379,8 +426,15 @@ function endDrag(): void {
     return;
   }
 
-  dragRow.classList.remove('todo--dragging');
+  const row = dragRow;
   dragRow = null;
+
+  const was = row.getBoundingClientRect().top;
+
+  row.style.transform = '';
+  row.classList.remove('todo--dragging');
+  slide(row, was - row.getBoundingClientRect().top);
+
   commitOrder();
 }
 

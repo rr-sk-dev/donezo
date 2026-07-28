@@ -260,7 +260,10 @@ svg {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-row);
-  transition: background-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 /* Drag handle ------------------------------------------------- */
@@ -287,11 +290,15 @@ svg {
   visibility: hidden;
 }
 
+/* Lifted off the page. The transform is driven from JS and must stay
+   untransitioned so the row tracks the pointer 1:1 rather than lagging it. */
 .todo--dragging {
   position: relative;
   z-index: 1;
   border-color: var(--ink);
-  box-shadow: 0 10px 24px -10px rgba(15, 23, 42, 0.35);
+  background: var(--surface);
+  box-shadow: 0 12px 28px -10px rgba(15, 23, 42, 0.4);
+  will-change: transform;
 }
 
 .todo--dragging .todo__drag {
