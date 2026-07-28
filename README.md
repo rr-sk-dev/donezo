@@ -33,6 +33,7 @@ PORT=8080 bun run dev
 - Completed todos drop to the bottom and are not reorderable
 - Todos persist across reloads
 - Installable — add it to your phone's home screen and it opens fullscreen, like an app
+- Works offline once you've loaded it (a service worker caches everything it needs)
 - Responsive down to phone widths, with keyboard and screen-reader support
 
 ## Project layout
