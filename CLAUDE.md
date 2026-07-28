@@ -1,5 +1,43 @@
+# CLAUDE.md
 
-Default to using Bun instead of Node.js.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Commands
+
+```bash
+bun install          # install dependencies
+bun run dev          # dev server with HMR + browser console piped to the terminal
+bun run start        # production mode (NODE_ENV=production, disables HMR)
+bun test             # run tests
+bun test <pattern>   # run tests matching a file/name pattern
+bun test -t "name"   # run a single test by name
+bunx tsc --noEmit    # typecheck (tsconfig is noEmit; there is no build step)
+```
+
+`PORT` overrides the default port 3000. The server binds `0.0.0.0` and prints a LAN URL in dev so the app can be opened from a phone on the same network.
+
+There is no linter or formatter configured.
+
+## Architecture
+
+Donezo is a single-page todo app with **no backend state** — `index.ts` is only a static host, and all data lives in the browser's `localStorage` under the key `todos:v1`.
+
+- `index.ts` — `Bun.serve()` with two routes: `/` (the HTML import) and `/health`. The `import index from './src/index.html'` line is what makes Bun bundle and transpile `app.ts` and `styles.css`; do not add a separate bundler or build step. The files under `src/` are bundler inputs — they are never served at their source paths.
+- `src/index.html` — markup plus a `<template id="todo-template">` that defines a todo row. Row structure is authored here, not generated in JS.
+- `src/app.ts` — the entire app. Vanilla TS, no framework, no dependencies.
+- `src/styles.css` — CSS custom properties in `:root` are mobile-first defaults, overridden at `min-width: 480px` and `768px`. Change spacing/sizing by editing those tokens rather than individual rules. Class names are BEM (`todo__checkbox`, `card__title`).
+
+### Conventions in `src/app.ts`
+
+- **Template cloning, not innerHTML.** `createRow()` clones `#todo-template` and fills it. Adding a field to a row means editing the template in `index.html` and the corresponding lookup in `createRow()`.
+- **Event delegation.** All handlers are bound to the `#todo-list` element (`click`, `change`, `keydown`, `focusout`), never to individual rows. Buttons are identified by `data-action` attributes; the owning row is resolved via `rowOf()` → `closest('.todo')` and the model via `todoOf()` → `row.dataset.id`.
+- **Surgical DOM updates.** `renderAll()` runs once at startup. Mutations (`addTodo`, `deleteTodo`, `toggleTodo`, `commitEdit`) update the model, touch only the affected node, then call `save()`. Don't introduce a full re-render on every change.
+- **`el()` throws on missing selectors** — it is the single point of DOM lookup and encodes the assumption that the markup is present.
+- **Persistence is fail-soft.** `load()` validates every entry with the `isTodo()` type guard and discards junk; `save()` swallows quota/private-mode errors so the app keeps working in memory.
+
+## Bun usage
+
+Default to Bun over Node.js.
 
 - Use `bun <file>` instead of `node <file>` or `ts-node <file>`
 - Use `bun test` instead of `jest` or `vitest`
@@ -19,9 +57,11 @@ Default to using Bun instead of Node.js.
 - Prefer `Bun.file` over `node:fs`'s readFile/writeFile
 - Bun.$`ls` instead of execa.
 
+Bun API docs are available locally in `node_modules/bun-types/docs/**.mdx`.
+
 ## Testing
 
-Use `bun test` to run tests.
+Tests use `bun:test`:
 
 ```ts#index.test.ts
 import { test, expect } from "bun:test";
@@ -30,77 +70,3 @@ test("hello world", () => {
   expect(1).toBe(1);
 });
 ```
-
-## Frontend
-
-Use HTML imports with `Bun.serve()`. Don't use `vite`. HTML imports fully support React, CSS, Tailwind.
-
-Server:
-
-```ts#index.ts
-import index from "./index.html"
-
-Bun.serve({
-  routes: {
-    "/": index,
-    "/api/users/:id": {
-      GET: (req) => {
-        return new Response(JSON.stringify({ id: req.params.id }));
-      },
-    },
-  },
-  // optional websocket support
-  websocket: {
-    open: (ws) => {
-      ws.send("Hello, world!");
-    },
-    message: (ws, message) => {
-      ws.send(message);
-    },
-    close: (ws) => {
-      // handle close
-    }
-  },
-  development: {
-    hmr: true,
-    console: true,
-  }
-})
-```
-
-HTML files can import .tsx, .jsx or .js files directly and Bun's bundler will transpile & bundle automatically. `<link>` tags can point to stylesheets and Bun's CSS bundler will bundle.
-
-```html#index.html
-<html>
-  <body>
-    <h1>Hello, world!</h1>
-    <script type="module" src="./frontend.tsx"></script>
-  </body>
-</html>
-```
-
-With the following `frontend.tsx`:
-
-```tsx#frontend.tsx
-import React from "react";
-import { createRoot } from "react-dom/client";
-
-// import .css files directly and it works
-import './index.css';
-
-const root = createRoot(document.body);
-
-export default function Frontend() {
-  return <h1>Hello, world!</h1>;
-}
-
-root.render(<Frontend />);
-```
-
-Then, run index.ts
-
-```sh
-bun --hot ./index.ts
-```
-
-For more information, read the Bun API docs in `node_modules/bun-types/docs/**.mdx`.
