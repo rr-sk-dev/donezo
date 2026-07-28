@@ -30,6 +30,15 @@ Donezo is a single-page todo app with **no backend state** — `index.ts` is onl
 - `src/index.html` — markup plus a `<template id="todo-template">` that defines a todo row. Row structure is authored here, not generated in JS.
 - `src/app.ts` — the entire app. Vanilla TS, no framework, no dependencies.
 - `src/styles.css` — CSS custom properties in `:root` are mobile-first defaults, overridden at `min-width: 480px` and `768px`. Change spacing/sizing by editing those tokens rather than individual rules. Class names are BEM (`todo__checkbox`, `card__title`).
+- `src/sw.ts` — the service worker, built as its own entry point so it gets a top-level worker scope and a stable unhashed `/sw.js` URL (that URL is how the browser distinguishes an update from a new registration). It needs `/// <reference lib="webworker" />`; the project's `lib` is DOM-only.
+- `scripts/build.ts` — the static build. Wipes `dist/` first so stale hashed assets are never shipped, bundles the page and the worker separately, then copies the two fixed-name manifest icons.
+
+### Offline
+
+- **The worker precaches nothing** — it caches responses as they are requested, so offline works from the second visit on. A precache list would have to be regenerated every build to track the hashed filenames; for a single page that loads all its assets at once, runtime caching gets to the same place without coupling the worker to the build.
+- **`index.html` is network-first, everything else is cache-first.** This split is the whole design: the HTML is the only file whose URL never changes, so a cached copy would pin the app to a previous deploy's asset names forever. Every other filename carries a content hash and therefore can never go stale.
+- **Registration is gated on `location.protocol === 'https:'`** (`src/app.ts`, bottom), which excludes the dev server, where a cache layer would serve stale assets and defeat HMR. The side effect is that the worker cannot be exercised over `http://localhost` — verify it against a deployed build.
+- Bump `CACHE` in `src/sw.ts` only to force every client onto a clean cache; ordinary deploys do not need it.
 
 ### Conventions in `src/app.ts`
 
