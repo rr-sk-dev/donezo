@@ -46,18 +46,32 @@ function sortByDone(list: Todo[]): Todo[] {
   return [...list.filter((todo) => !todo.done), ...list.filter((todo) => todo.done)];
 }
 
+function seed(): Todo[] {
+  const titles = [
+    'Drag the handle to reorder',
+    'Tap the pencil to rename',
+    'Check one off — it sinks to the bottom',
+    'Finished todos gather down here',
+  ];
+
+  return titles.map((title, index) => ({
+    id: createId(),
+    title,
+    done: index === titles.length - 1,
+  }));
+}
+
 function load(): Todo[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      return [];
-    }
 
-    const parsed: unknown = JSON.parse(raw);
-    return Array.isArray(parsed) ? sortByDone(parsed.filter(isTodo)) : [];
-  } catch {
-    return [];
-  }
+    if (raw !== null) {
+      const parsed: unknown = JSON.parse(raw);
+      return Array.isArray(parsed) ? sortByDone(parsed.filter(isTodo)) : [];
+    }
+  } catch {}
+
+  return seed();
 }
 
 function save(): void {
@@ -72,6 +86,8 @@ function save(): void {
    State + DOM
 ------------------------------------------------------------------ */
 const todos: Todo[] = load();
+
+save();
 
 const form = el<HTMLFormElement>('#todo-form');
 const input = el<HTMLInputElement>('#todo-input');

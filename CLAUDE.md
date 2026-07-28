@@ -41,6 +41,7 @@ Donezo is a single-page todo app with **no backend state** — `index.ts` is onl
 - **Surgical DOM updates.** `renderAll()` runs once at startup. Mutations (`addTodo`, `deleteTodo`, `toggleTodo`, `commitEdit`) update the model, touch only the affected node, then call `save()`. Don't introduce a full re-render on every change.
 - **`el()` throws on missing selectors** — it is the single point of DOM lookup and encodes the assumption that the markup is present.
 - **Persistence is fail-soft.** `load()` validates every entry with the `isTodo()` type guard and discards junk; `save()` swallows quota/private-mode errors so the app keeps working in memory.
+- **A first visit is seeded with demo todos** (`seed()`), because the app is a portfolio piece and reordering, completing and inline edit are all invisible on an empty list. First visit means the storage key is **absent** — an emptied list persists as `"[]"`, so deleting the examples keeps them gone. The unconditional `save()` beside `const todos = load()` is what writes that first `"[]"` into existence; it cannot move inside `load()`, which runs before `todos` is initialised.
 
 ## Bun usage
 
