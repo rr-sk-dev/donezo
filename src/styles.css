@@ -133,7 +133,9 @@ svg {
   display: flex;
   justify-content: center;
   padding: var(--page-pad);
-  /* Clears notches and home indicators in landscape */
+  /* Clears notches, status bars and home indicators. Needs viewport-fit=cover
+     on the viewport meta, or every inset below resolves to 0 */
+  padding-top: max(var(--page-pad), env(safe-area-inset-top));
   padding-left: max(var(--page-pad), env(safe-area-inset-left));
   padding-right: max(var(--page-pad), env(safe-area-inset-right));
   padding-bottom: max(var(--page-pad), env(safe-area-inset-bottom));
