@@ -263,6 +263,46 @@ svg {
   transition: background-color 0.15s ease;
 }
 
+/* Drag handle ------------------------------------------------- */
+.todo__drag {
+  flex: 0 0 auto;
+  /* Narrower than a full tap target — the gesture is vertical, so the
+     44px height carries the touch accuracy and the row keeps its width */
+  width: 26px;
+  height: var(--tap);
+  margin-left: calc(var(--row-pad-x) / -2);
+  cursor: grab;
+  /* Claims the vertical gesture so dragging never scrolls the page */
+  touch-action: none;
+}
+
+.todo__drag svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Done todos are not reorderable. visibility (not display) keeps their
+   slot so rows stay aligned, and it also drops the button from the tab order */
+.todo:has(.todo__checkbox:checked) .todo__drag {
+  visibility: hidden;
+}
+
+.todo--dragging {
+  position: relative;
+  z-index: 1;
+  border-color: var(--ink);
+  box-shadow: 0 10px 24px -10px rgba(15, 23, 42, 0.35);
+}
+
+.todo--dragging .todo__drag {
+  cursor: grabbing;
+}
+
+/* Stops the pointer from painting a text selection across the list mid-drag */
+.todos:has(.todo--dragging) {
+  user-select: none;
+}
+
 /* Checkbox ---------------------------------------------------- */
 .todo__check {
   flex: 0 0 auto;

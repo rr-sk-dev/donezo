@@ -29,6 +29,8 @@ PORT=8080 bun run dev
 
 - Add, edit, complete, and delete todos
 - Edit inline by clicking the pencil — <kbd>Enter</kbd> saves, <kbd>Esc</kbd> cancels, and an empty value reverts rather than deleting
+- Reorder open todos by dragging the handle, or by focusing it and pressing <kbd>↑</kbd>/<kbd>↓</kbd>
+- Completed todos drop to the bottom and are not reorderable
 - Todos persist across reloads
 - Responsive down to phone widths, with keyboard and screen-reader support
 

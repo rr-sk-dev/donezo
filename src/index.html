@@ -36,6 +36,17 @@
 
     <template id="todo-template">
       <li class="todo">
+        <button
+          class="icon-btn todo__drag"
+          type="button"
+          data-drag
+          aria-label="Reorder todo — drag, or use the arrow keys"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 6h.01M9 12h.01M9 18h.01M15 6h.01M15 12h.01M15 18h.01" />
+          </svg>
+        </button>
+
         <label class="todo__check">
           <input class="todo__checkbox" type="checkbox" />
           <span class="todo__box" aria-hidden="true">

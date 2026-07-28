@@ -92,6 +92,23 @@ function doneStart(): number {
   return index === -1 ? todos.length : index;
 }
 
+function activeRows(): HTMLLIElement[] {
+  return Array.from(list.children).slice(0, doneStart()) as HTMLLIElement[];
+}
+
+function dropTarget(y: number, dragging: HTMLLIElement): Element | null {
+  const landing = activeRows().find((row) => {
+    if (row === dragging) {
+      return false;
+    }
+
+    const box = row.getBoundingClientRect();
+    return y < box.top + box.height / 2;
+  });
+
+  return landing ?? list.children[doneStart()] ?? null;
+}
+
 /* ------------------------------------------------------------------
    Rendering
 ------------------------------------------------------------------ */
@@ -174,6 +191,32 @@ function toggleTodo(row: HTMLLIElement, done: boolean): void {
   }
 
   save();
+}
+
+function commitOrder(): void {
+  const position = new Map<string, number>();
+
+  Array.from(list.children).forEach((child, index) => {
+    if (child instanceof HTMLElement && child.dataset.id) {
+      position.set(child.dataset.id, index);
+    }
+  });
+
+  todos.sort((a, b) => (position.get(a.id) ?? 0) - (position.get(b.id) ?? 0));
+  save();
+}
+
+function moveRow(row: HTMLLIElement, delta: number): void {
+  const rows = activeRows();
+  const from = rows.indexOf(row);
+  const to = from + delta;
+
+  if (from === -1 || to < 0 || to >= rows.length) {
+    return;
+  }
+
+  list.insertBefore(row, delta < 0 ? rows[to]! : rows[to]!.nextElementSibling);
+  commitOrder();
 }
 
 function startEdit(row: HTMLLIElement): void {
@@ -297,6 +340,70 @@ list.addEventListener('focusout', (event) => {
   }
 
   commitEdit(row);
+});
+
+let dragRow: HTMLLIElement | null = null;
+
+function handleOf(target: EventTarget | null): HTMLButtonElement | null {
+  return target instanceof Element ? target.closest<HTMLButtonElement>('[data-drag]') : null;
+}
+
+list.addEventListener('pointerdown', (event) => {
+  const handle = handleOf(event.target);
+  const row = rowOf(handle);
+
+  if (!handle || !row || todoOf(row)?.done) {
+    return;
+  }
+
+  event.preventDefault();
+  dragRow = row;
+  row.classList.add('todo--dragging');
+  list.setPointerCapture(event.pointerId);
+});
+
+list.addEventListener('pointermove', (event) => {
+  if (!dragRow) {
+    return;
+  }
+
+  const before = dropTarget(event.clientY, dragRow);
+
+  if (before !== dragRow.nextElementSibling) {
+    list.insertBefore(dragRow, before);
+  }
+});
+
+function endDrag(): void {
+  if (!dragRow) {
+    return;
+  }
+
+  dragRow.classList.remove('todo--dragging');
+  dragRow = null;
+  commitOrder();
+}
+
+list.addEventListener('pointerup', endDrag);
+list.addEventListener('pointercancel', endDrag);
+
+list.addEventListener('keydown', (event) => {
+  const handle = handleOf(event.target);
+  const row = rowOf(handle);
+
+  if (!handle || !row) {
+    return;
+  }
+
+  const delta = event.key === 'ArrowUp' ? -1 : event.key === 'ArrowDown' ? 1 : 0;
+
+  if (!delta) {
+    return;
+  }
+
+  event.preventDefault();
+  moveRow(row, delta);
+  handle.focus();
 });
 
 renderAll();
