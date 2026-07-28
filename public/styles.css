@@ -1,0 +1,425 @@
+/* ---------------------------------------------------------------
+   Tokens — sizing values are MOBILE defaults, scaled up at min-width
+--------------------------------------------------------------- */
+:root {
+  /* Colour */
+  --ink: #0b1120;
+  --text: #111827;
+  --muted: #64748b;
+  --border: #e6e9f2;
+  --field-border: #e2e8f0;
+  --surface: #ffffff;
+  --surface-hover: #f8fafc;
+  --page-bg: #f4f6fb;
+  --ring: rgba(15, 23, 42, 0.18);
+
+  /* Sizing */
+  --page-pad: 16px;
+  --card-pad: 20px;
+  --card-radius: 16px;
+  --title-size: 28px;
+  --title-gap: 20px;
+  --control-h: 48px;
+  --row-pad-y: 12px;
+  --row-pad-x: 12px;
+  --row-gap: 10px;
+  --body-size: 16px;
+  --tap: 44px;
+
+  --r-control: 12px;
+  --r-row: 14px;
+  --r-box: 8px;
+
+  --font:
+    'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+}
+
+@media (min-width: 480px) {
+  :root {
+    --page-pad: 32px;
+    --card-pad: 32px;
+    --card-radius: 20px;
+    --title-size: 34px;
+    --title-gap: 24px;
+    --control-h: 52px;
+    --row-pad-y: 14px;
+    --row-pad-x: 16px;
+    --row-gap: 12px;
+    --body-size: 17px;
+  }
+}
+
+@media (min-width: 768px) {
+  :root {
+    --page-pad: 64px;
+    --card-pad: 40px;
+    --title-size: 40px;
+    --title-gap: 28px;
+    --control-h: 56px;
+    --row-pad-y: 16px;
+    --row-pad-x: 18px;
+    --body-size: 18px;
+  }
+}
+
+/* Fine pointer = mouse. Tap targets can shrink; hit area is exact. */
+@media (pointer: fine) {
+  :root {
+    --tap: 36px;
+  }
+}
+
+/* ---------------------------------------------------------------
+   Base
+--------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--page-bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------------------------------------------------------------
+   Layout
+--------------------------------------------------------------- */
+.page {
+  display: flex;
+  justify-content: center;
+  padding: var(--page-pad);
+  /* Clears notches and home indicators in landscape */
+  padding-left: max(var(--page-pad), env(safe-area-inset-left));
+  padding-right: max(var(--page-pad), env(safe-area-inset-right));
+  padding-bottom: max(var(--page-pad), env(safe-area-inset-bottom));
+}
+
+.card {
+  width: 100%;
+  max-width: 720px;
+  padding: var(--card-pad);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 12px 32px -12px rgba(15, 23, 42, 0.12);
+}
+
+.card__title {
+  margin: 0 0 var(--title-gap);
+  font-size: var(--title-size);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+/* ---------------------------------------------------------------
+   Composer
+--------------------------------------------------------------- */
+.composer {
+  display: flex;
+  gap: var(--row-gap);
+  align-items: stretch;
+}
+
+.composer__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: var(--control-h);
+  padding: 0 16px;
+  background: var(--surface);
+  border: 1px solid var(--field-border);
+  border-radius: var(--r-control);
+  /* Never below 16px: iOS Safari zooms the viewport on focus if it is */
+  font-size: max(16px, var(--body-size));
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.composer__input::placeholder {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.composer__input:focus-visible,
+.todo__edit:focus-visible {
+  outline: none;
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+.composer__add {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: var(--control-h);
+  height: var(--control-h);
+  padding: 0;
+  background: var(--ink);
+  color: #fff;
+  border: 0;
+  border-radius: var(--r-control);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.composer__add svg {
+  width: 22px;
+  height: 22px;
+}
+
+.composer__add:active {
+  transform: scale(0.96);
+}
+
+/* ---------------------------------------------------------------
+   Empty state
+--------------------------------------------------------------- */
+.empty {
+  margin: 32px 0 8px;
+  text-align: center;
+  color: var(--muted);
+  font-size: var(--body-size);
+  font-weight: 500;
+}
+
+.empty[hidden] {
+  display: none;
+}
+
+/* ---------------------------------------------------------------
+   List
+--------------------------------------------------------------- */
+.todos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--row-gap);
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.todos[hidden] {
+  display: none;
+}
+
+.todo {
+  display: flex;
+  align-items: center;
+  gap: var(--row-gap);
+  padding: var(--row-pad-y) var(--row-pad-x);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-row);
+  transition: background-color 0.15s ease;
+}
+
+/* Checkbox ---------------------------------------------------- */
+.todo__check {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  /* Label is the tap target; the visible box stays small */
+  width: var(--tap);
+  height: var(--tap);
+  margin-left: calc(var(--tap) / -4);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.todo__checkbox {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.todo__box {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 2px solid #cbd5e1;
+  border-radius: var(--r-box);
+  color: transparent;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.todo__box svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 3;
+}
+
+.todo__checkbox:checked + .todo__box {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+.todo__checkbox:focus-visible + .todo__box {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+/* Title ------------------------------------------------------- */
+.todo__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--body-size);
+  overflow-wrap: anywhere;
+  transition: color 0.15s ease;
+}
+
+.todo:has(.todo__checkbox:checked) .todo__title {
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+/* Inline edit ------------------------------------------------- */
+.todo__edit {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: var(--tap);
+  padding: 0 12px;
+  background: var(--surface);
+  border: 1px solid var(--field-border);
+  border-radius: 10px;
+  font-size: max(16px, var(--body-size));
+}
+
+.todo__edit[hidden] {
+  display: none;
+}
+
+/* Actions ----------------------------------------------------- */
+.todo__actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+  margin-right: calc(var(--tap) / -4);
+}
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: var(--tap);
+  height: var(--tap);
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 9px;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.icon-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.icon-btn:active {
+  background: #eef2f7;
+}
+
+.icon-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+/* ---------------------------------------------------------------
+   Hover — only for devices that actually hover, so touch taps
+   don't leave states stuck on
+--------------------------------------------------------------- */
+@media (hover: hover) and (pointer: fine) {
+  .composer__add:hover {
+    background: #1c2740;
+  }
+
+  .todo:hover {
+    background: var(--surface-hover);
+  }
+
+  .todo__check:hover .todo__box {
+    border-color: var(--muted);
+  }
+
+  .icon-btn:hover {
+    background: #eef2f7;
+    color: var(--ink);
+  }
+
+  .icon-btn[data-action='delete']:hover {
+    color: #dc2626;
+  }
+}
+
+/* ---------------------------------------------------------------
+   Motion
+--------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
