@@ -42,6 +42,10 @@ function isTodo(value: unknown): value is Todo {
   );
 }
 
+function sortByDone(list: Todo[]): Todo[] {
+  return [...list.filter((todo) => !todo.done), ...list.filter((todo) => todo.done)];
+}
+
 function load(): Todo[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -50,7 +54,7 @@ function load(): Todo[] {
     }
 
     const parsed: unknown = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter(isTodo) : [];
+    return Array.isArray(parsed) ? sortByDone(parsed.filter(isTodo)) : [];
   } catch {
     return [];
   }
@@ -81,6 +85,11 @@ function rowOf(target: EventTarget | null): HTMLLIElement | null {
 
 function todoOf(row: HTMLLIElement): Todo | undefined {
   return todos.find((todo) => todo.id === row.dataset.id);
+}
+
+function doneStart(): number {
+  const index = todos.findIndex((todo) => todo.done);
+  return index === -1 ? todos.length : index;
 }
 
 /* ------------------------------------------------------------------
@@ -116,8 +125,10 @@ function renderAll(): void {
 ------------------------------------------------------------------ */
 function addTodo(title: string): void {
   const todo: Todo = { id: createId(), title, done: false };
-  todos.push(todo);
-  list.append(createRow(todo));
+  const index = doneStart();
+
+  todos.splice(index, 0, todo);
+  list.insertBefore(createRow(todo), list.children[index] ?? null);
   save();
   syncEmptyState();
 }
@@ -136,13 +147,32 @@ function deleteTodo(row: HTMLLIElement): void {
 }
 
 function toggleTodo(row: HTMLLIElement, done: boolean): void {
-  const todo = todoOf(row);
+  const index = todos.findIndex((todo) => todo.id === row.dataset.id);
+  const todo = todos[index];
 
   if (!todo) {
     return;
   }
 
   todo.done = done;
+
+  const checkbox = el<HTMLInputElement>('.todo__checkbox', row);
+  const refocus = document.activeElement === checkbox;
+
+  todos.splice(index, 1);
+
+  if (done) {
+    todos.push(todo);
+    list.append(row);
+  } else {
+    todos.unshift(todo);
+    list.prepend(row);
+  }
+
+  if (refocus) {
+    checkbox.focus();
+  }
+
   save();
 }
 
