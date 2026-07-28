@@ -46,6 +46,15 @@ src/styles.css      CSS custom properties, mobile-first
 
 Bun bundles and transpiles `app.ts` and `styles.css` automatically via the HTML import in `index.ts`. There's no build step.
 
+## Deploying
+
+The app is fully static — `index.ts` is only a dev server and is not deployed. `bun run build`
+emits a self-contained `dist/` that any static host can serve.
+
+`vercel.json` configures it for Vercel: import the repo once at
+[vercel.com/new](https://vercel.com/new) and every push to `master` deploys automatically.
+No build settings to fill in — they are read from that file.
+
 ## Other commands
 
 ```bash

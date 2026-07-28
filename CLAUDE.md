@@ -19,6 +19,8 @@ bunx tsc --noEmit    # typecheck (tsconfig is noEmit; bun build does the bundlin
 
 There is no linter or formatter configured.
 
+Deployment is static. `vercel.json` pins `bun run build` → `dist/`; the Bun server in `index.ts` is never deployed, so do not add server-side behaviour there and expect it in production.
+
 ## Architecture
 
 Donezo is a single-page todo app with **no backend state** — `index.ts` is only a static host, and all data lives in the browser's `localStorage` under the key `todos:v1`.
